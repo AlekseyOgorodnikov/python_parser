@@ -1,37 +1,25 @@
 import requests
-import fake_useragent
-from bs4 import BeautifulSoup
+import multiprocessing
 
-user = fake_useragent.UserAgent().random
 
-headers = {
-    "user-agent": user,
-}
+def handler(proxy):
+    link = 'http://icanhazip.com/'
 
-link = 'https://browser-info.ru/'
+    proxies = {
+        'http': f'http://{proxy}',
+        'https': f'http://{proxy}'
+    }
 
-# запрос к url
-response = requests.get(link, headers=headers).text
+    try:
+        response = requests.get(link, proxies=proxies, timeout=2).text
+        print(f'IP: {response.strip()}')
+    except:
+        print('Прокси не валидный')
 
-# подключение библиотеки soup
-soup = BeautifulSoup(response, "lxml")
 
-# поиск корневого элемента блока по id
-block = soup.find('div', id='tool_padding')
+with open('proxy') as file:
+    proxy_base = ''.join(file.readlines()).strip().split('\n')
 
-# parse on/off js in site
-check_js = block.find('div', id='javascript_check')
-status_js = check_js.find_all('span')[1].text
-result_js = f'javascript: {status_js}'
-
-# parse flash in site
-check_flash = block.find('div', id='flash_version')
-status_flash = check_flash.find_all('span')[1].text
-result_flash = f'flash: {status_flash}'
-
-# parse user agent in site
-check_user_agent = block.find('div', id='user_agent').text
-
-print(result_js)
-print(result_flash)
-print(check_user_agent)
+if __name__ == '__main__':
+    with multiprocessing.Pool(multiprocessing.cpu_count()) as process:
+        process.map(handler, proxy_base)
