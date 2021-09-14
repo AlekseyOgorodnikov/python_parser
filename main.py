@@ -1,25 +1,16 @@
-import requests
-import multiprocessing
+import time
 
+from selenium import webdriver
 
-def handler(proxy):
-    link = 'http://icanhazip.com/'
+browser = webdriver.Firefox()
 
-    proxies = {
-        'http': f'http://{proxy}',
-        'https': f'http://{proxy}'
-    }
+browser.get('https://duckduckgo.com')
+browser.save_screenshot('1.png')
 
-    try:
-        response = requests.get(link, proxies=proxies, timeout=2).text
-        print(f'IP: {response.strip()}')
-    except:
-        print('Прокси не валидный')
+time.sleep(5)
 
+browser.get('https://google.com')
+browser.save_screenshot('2.png')
+browser.refresh()
 
-with open('proxy') as file:
-    proxy_base = ''.join(file.readlines()).strip().split('\n')
-
-if __name__ == '__main__':
-    with multiprocessing.Pool(multiprocessing.cpu_count()) as process:
-        process.map(handler, proxy_base)
+browser.quit()
